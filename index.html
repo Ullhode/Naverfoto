@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>NaverFoto</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 15px;
+            background: #f2f2f2;
+        }
+
+        h1 {
+            margin-top: 0;
+            text-align: center;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        input {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 15px;
+            margin-bottom: 10px;
+            font-size: 20px;
+        }
+
+        video {
+            display: block;
+            width: 100%;
+            margin-top: 12px;
+            border-radius: 12px;
+            background: black;
+        }
+
+        button {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 20px;
+            margin-top: 10px;
+            border: none;
+            border-radius: 8px;
+            font-size: 21px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        #capture {
+            color: white;
+            background: #1769aa;
+        }
+
+        #back {
+            color: white;
+            background: #555555;
+        }
+
+        #reset {
+            color: black;
+            background: #dddddd;
+        }
+
+        #depthLabel {
+            margin: 10px 0;
+            text-align: center;
+            font-size: 32px;
+            font-weight: bold;
+        }
+
+        #status {
+            min-height: 22px;
+            margin-top: 10px;
+            text-align: center;
+            font-size: 16px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>NaverFoto</h1>
+
+    <label for="point">Borepunkt</label>
+
+    <input
+        id="point"
+        type="text"
+        value="SK1"
+        placeholder="Skriv borepunkt"
+        autocomplete="off"
+    >
+
+    <div id="depthLabel">0–1 m</div>
+
+    <video
+        id="camera"
+        autoplay
+        muted
+        playsinline
+    ></video>
+
+    <button id="capture" type="button">
+        TA BILDE
+    </button>
+
+    <button id="back" type="button">
+        FORRIGE DYBDE
+    </button>
+
+    <button id="reset" type="button">
+        NULLSTILL DYBDE
+    </button>
+
+    <div id="status"></div>
+
+    <canvas
+        id="canvas"
+        style="display: none;"
+    ></canvas>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", async function () {
+            let currentDepth = 0;
+            let cameraStream = null;
+
+            const pointInput =
+                document.getElementById("point");
+
+            const depthLabel =
+                document.getElementById("depthLabel");
+
+            const video =
+                document.getElementById("camera");
+
+            const canvas =
+                document.getElementById("canvas");
+
+            const captureButton =
+                document.getElementById("capture");
+
+            const backButton =
+                document.getElementById("back");
+
+            const resetButton =
+                document.getElementById("reset");
+
+            const status =
+                document.getElementById("status");
+
+            function depthText() {
+                return `${currentDepth}–${currentDepth + 1} m`;
+            }
+
+            function updateDepth() {
+                depthLabel.textContent = depthText();
+            }
+
+            function safeFileName(value) {
+                return value
+                    .trim()
+                    .toUpperCase()
+                    .replace(/[^A-ZÆØÅ0-9_-]/gi, "_");
+            }
+
+            function drawOutlinedText(
+                context,
+                text,
+                x,
+                y
+            ) {
+                /*
+                 * Svart kant rundt bokstavene gir god lesbarhet
+                 * uten en grå eller svart bakgrunnsboks.
+                 */
+                context.lineWidth = 8;
+                context.lineJoin = "round";
+                context.strokeStyle = "rgba(0, 0, 0, 0.95)";
+                context.fillStyle = "white";
+
+                context.strokeText(text, x, y);
+                context.fillText(text, x, y);
+            }
+
+            async function startCamera() {
+                if (
+                    !navigator.mediaDevices ||
+                    !navigator.mediaDevices.getUserMedia
+                ) {
+                    status.textContent =
+                        "Nettleseren støtter ikke kameratilgang.";
+
+                    captureButton.disabled = true;
+                    return;
+                }
+
+                try {
+                    cameraStream =
+                        await navigator.mediaDevices.getUserMedia({
+                            video: {
+                                facingMode: {
+                                    ideal: "environment"
+                                },
+                                width: {
+                                    ideal: 1920
+                                },
+                                height: {
+                                    ideal: 1080
+                                }
+                            },
+                            audio: false
+                        });
+
+                    video.srcObject = cameraStream;
+
+                    await video.play();
+
+                    status.textContent = "Kameraet er klart.";
+                } catch (error) {
+                    console.error(
+                        "Klarte ikke å åpne kamera:",
+                        error
+                    );
+
+                    status.textContent =
+                        "Kameraet kunne ikke åpnes. Kontroller kameratillatelsen.";
+
+                    captureButton.disabled = true;
+                }
+            }
+
+            function takePhoto() {
+                const width = video.videoWidth;
+                const height = video.videoHeight;
+
+                if (!width || !height) {
+                    alert(
+                        "Kameraet er ikke klart ennå. Vent et øyeblikk og prøv igjen."
+                    );
+                    return;
+                }
+
+                const borepunkt =
+                    pointInput.value.trim().toUpperCase();
+
+                if (!borepunkt) {
+                    alert("Skriv inn borepunkt før du tar bildet.");
+                    pointInput.focus();
+                    return;
+                }
+
+                /*
+                 * Låser verdiene som hører til akkurat dette bildet.
+                 */
+                const fromDepth = currentDepth;
+                const toDepth = currentDepth + 1;
+                const intervalText =
+                    `${fromDepth}–${toDepth} m`;
+
+                canvas.width = width;
+                canvas.height = height;
+
+                const context =
+                    canvas.getContext("2d");
+
+                if (!context) {
+                    alert("Kunne ikke behandle bildet.");
+                    return;
+                }
+
+                context.drawImage(
+                    video,
+                    0,
+                    0,
+                    width,
+                    height
+                );
+
+                /*
+                 * Teksten skaleres etter bildets størrelse.
+                 */
+                const fontSize =
+                    Math.max(36, Math.round(width * 0.04));
+
+                const leftMargin =
+                    Math.max(20, Math.round(width * 0.02));
+
+                const topMargin =
+                    Math.max(30, Math.round(height * 0.04));
+
+                const lineSpacing =
+                    Math.round(fontSize * 1.35);
+
+                context.font =
+                    `bold ${fontSize}px Arial, sans-serif`;
+
+                context.textAlign = "left";
+                context.textBaseline = "top";
+
+                /*
+                 * Ingen farget bakgrunnsboks.
+                 * Teksten plasseres øverst på venstre side.
+                 */
+                drawOutlinedText(
+                    context,
+                    borepunkt,
+                    leftMargin,
+                    topMargin
+                );
+
+                drawOutlinedText(
+                    context,
+                    intervalText,
+                    leftMargin,
+                    topMargin + lineSpacing
+                );
+
+                canvas.toBlob(
+                    function (blob) {
+                        if (!blob) {
+                            alert("Bildet kunne ikke lagres.");
+                            return;
+                        }
+
+                        const fileName =
+                            `${safeFileName(borepunkt)}_` +
+                            `${fromDepth}-${toDepth}m.jpg`;
+
+                        const imageUrl =
+                            URL.createObjectURL(blob);
+
+                        const downloadLink =
+                            document.createElement("a");
+
+                        downloadLink.href = imageUrl;
+                        downloadLink.download = fileName;
+
+                        document.body.appendChild(downloadLink);
+                        downloadLink.click();
+                        downloadLink.remove();
+
+                        setTimeout(function () {
+                            URL.revokeObjectURL(imageUrl);
+                        }, 1000);
+
+                        /*
+                         * Dybden økes først etter at bildet
+                         * er ferdig behandlet.
+                         */
+                        currentDepth += 1;
+                        updateDepth();
+
+                        status.textContent =
+                            `Bildet ${fileName} er lagret.`;
+                    },
+                    "image/jpeg",
+                    0.95
+                );
+            }
+
+            captureButton.addEventListener(
+                "click",
+                takePhoto
+            );
+
+            backButton.addEventListener(
+                "click",
+                function () {
+                    if (currentDepth > 0) {
+                        currentDepth -= 1;
+                        updateDepth();
+
+                        status.textContent =
+                            "Dybden er flyttet ett intervall tilbake.";
+                    }
+                }
+            );
+
+            resetButton.addEventListener(
+                "click",
+                function () {
+                    currentDepth = 0;
+                    updateDepth();
+
+                    status.textContent =
+                        "Dybden er nullstilt til 0–1 m.";
+                }
+            );
+
+            pointInput.addEventListener(
+                "input",
+                function () {
+                    pointInput.value =
+                        pointInput.value.toUpperCase();
+                }
+            );
+
+            updateDepth();
+            await startCamera();
+        });
+    </script>
+
+</body>
+</html>
