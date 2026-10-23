@@ -5,62 +5,138 @@
 
     <meta
         name="viewport"
-        content="width=device-width, initial-scale=1.0"
+        content="width=device-width, initial-scale=1.0,
+        maximum-scale=1.0, user-scalable=no"
     >
 
     <title>NaverFoto</title>
 
     <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
         body {
-            max-width: 700px;
-            margin: 0 auto;
-            padding: 15px;
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        body {
             background: #f2f2f2;
             font-family: Arial, sans-serif;
         }
 
+        #app {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            max-width: 700px;
+            height: 100dvh;
+            min-height: 100vh;
+            margin: 0 auto;
+            padding:
+                max(6px, env(safe-area-inset-top))
+                10px
+                max(6px, env(safe-area-inset-bottom));
+            gap: 6px;
+        }
+
         h1 {
-            margin-top: 0;
+            flex: 0 0 auto;
+            margin: 0;
             text-align: center;
+            font-size: clamp(21px, 3.2vh, 28px);
+            line-height: 1.1;
+        }
+
+        #topRow {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            align-items: end;
+            flex: 0 0 auto;
+            gap: 8px;
+        }
+
+        #pointArea {
+            min-width: 0;
         }
 
         label {
             display: block;
-            margin-bottom: 6px;
-            font-size: 18px;
+            margin: 0 0 2px;
+            font-size: 14px;
             font-weight: bold;
         }
 
         input {
             width: 100%;
-            box-sizing: border-box;
-            padding: 15px;
-            margin-bottom: 10px;
-            border: 2px solid #777777;
-            border-radius: 8px;
-            font-size: 22px;
+            height: clamp(42px, 6vh, 52px);
+            padding: 6px 10px;
+            border: 2px solid #666666;
+            border-radius: 7px;
+            background: white;
+            font-size: clamp(19px, 2.8vh, 24px);
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        #depthLabel {
+            min-width: 100px;
+            height: clamp(42px, 6vh, 52px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4px 10px;
+            border: 2px solid #1769aa;
+            border-radius: 7px;
+            background: white;
+            font-size: clamp(20px, 3vh, 27px);
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        #cameraArea {
+            position: relative;
+            flex: 1 1 auto;
+            min-height: 120px;
+            overflow: hidden;
+            border-radius: 10px;
+            background: black;
         }
 
         video {
             display: block;
             width: 100%;
-            min-height: 250px;
-            margin-top: 12px;
-            border-radius: 12px;
+            height: 100%;
             background: black;
-            object-fit: cover;
+            object-fit: contain;
+        }
+
+        #cameraStatus {
+            position: absolute;
+            left: 6px;
+            bottom: 6px;
+            max-width: calc(100% - 12px);
+            padding: 3px 7px;
+            border-radius: 5px;
+            color: white;
+            background: rgba(0, 0, 0, 0.55);
+            font-size: 12px;
+            pointer-events: none;
         }
 
         button {
-            width: 100%;
-            box-sizing: border-box;
-            padding: 20px;
-            margin-top: 10px;
+            min-height: clamp(43px, 6.2vh, 56px);
+            padding: 6px;
             border: none;
             border-radius: 8px;
-            font-size: 21px;
+            font-size: clamp(16px, 2.4vh, 21px);
             font-weight: bold;
             cursor: pointer;
+            touch-action: manipulation;
         }
 
         button:disabled {
@@ -68,552 +144,4 @@
             cursor: not-allowed;
         }
 
-        #capture {
-            color: white;
-            background: #1769aa;
-        }
-
-        #back {
-            color: white;
-            background: #555555;
-        }
-
-        #reset {
-            color: black;
-            background: #dddddd;
-        }
-
-        #depthLabel {
-            margin: 12px 0;
-            text-align: center;
-            font-size: 34px;
-            font-weight: bold;
-        }
-
-        #status {
-            min-height: 24px;
-            margin-top: 12px;
-            padding: 8px;
-            text-align: center;
-            font-size: 16px;
-        }
-
-        #canvas {
-            display: none;
-        }
-    </style>
-</head>
-
-<body>
-
-    <h1>NaverFoto</h1>
-
-    <label for="point">Borepunkt</label>
-
-    <input
-        id="point"
-        type="text"
-        value="SK1"
-        placeholder="Skriv borepunkt"
-        autocomplete="off"
-        autocapitalize="characters"
-    >
-
-    <div id="depthLabel">0–1 m</div>
-
-    <video
-        id="camera"
-        autoplay
-        muted
-        playsinline
-    ></video>
-
-    <button
-        id="capture"
-        type="button"
-        disabled
-    >
-        TA BILDE
-    </button>
-
-    <button id="back" type="button">
-        FORRIGE DYBDE
-    </button>
-
-    <button id="reset" type="button">
-        NULLSTILL DYBDE
-    </button>
-
-    <div id="status">
-        Starter bakkameraet...
-    </div>
-
-    <canvas id="canvas"></canvas>
-
-    <script>
-        document.addEventListener(
-            "DOMContentLoaded",
-            async function () {
-
-                let currentDepth = 0;
-                let cameraStream = null;
-
-                const pointInput =
-                    document.getElementById("point");
-
-                const depthLabel =
-                    document.getElementById("depthLabel");
-
-                const video =
-                    document.getElementById("camera");
-
-                const canvas =
-                    document.getElementById("canvas");
-
-                const captureButton =
-                    document.getElementById("capture");
-
-                const backButton =
-                    document.getElementById("back");
-
-                const resetButton =
-                    document.getElementById("reset");
-
-                const status =
-                    document.getElementById("status");
-
-                function getDepthText() {
-                    return (
-                        currentDepth +
-                        "–" +
-                        (currentDepth + 1) +
-                        " m"
-                    );
-                }
-
-                function updateDepth() {
-                    depthLabel.textContent =
-                        getDepthText();
-                }
-
-                function createSafeFileName(value) {
-                    const cleanedName = value
-                        .trim()
-                        .toUpperCase()
-                        .replace(
-                            /[^A-ZÆØÅ0-9_-]/gi,
-                            "_"
-                        );
-
-                    return cleanedName || "BOREPUNKT";
-                }
-
-                /*
-                 * Tegner tekst uten bakgrunnsboks.
-                 * Hvit tekst med svart kant gjør teksten
-                 * synlig mot både lyse og mørke masser.
-                 */
-                function drawOutlinedText(
-                    context,
-                    text,
-                    x,
-                    y,
-                    outlineWidth
-                ) {
-                    context.lineWidth = outlineWidth;
-                    context.lineJoin = "round";
-                    context.miterLimit = 2;
-
-                    context.strokeStyle =
-                        "rgba(0, 0, 0, 0.95)";
-
-                    context.fillStyle = "white";
-
-                    context.strokeText(
-                        text,
-                        x,
-                        y
-                    );
-
-                    context.fillText(
-                        text,
-                        x,
-                        y
-                    );
-                }
-
-                async function openCamera(
-                    constraints
-                ) {
-                    return await navigator.mediaDevices
-                        .getUserMedia({
-                            video: constraints,
-                            audio: false
-                        });
-                }
-
-                async function startBackCamera() {
-                    if (
-                        !navigator.mediaDevices ||
-                        !navigator.mediaDevices.getUserMedia
-                    ) {
-                        status.textContent =
-                            "Nettleseren støtter ikke kamera.";
-
-                        captureButton.disabled = true;
-                        return;
-                    }
-
-                    /*
-                     * Stopper et kamera som eventuelt
-                     * allerede er startet.
-                     */
-                    if (cameraStream) {
-                        cameraStream
-                            .getTracks()
-                            .forEach(function (track) {
-                                track.stop();
-                            });
-
-                        cameraStream = null;
-                    }
-
-                    try {
-                        /*
-                         * Første forsøk krever bakkamera.
-                         */
-                        cameraStream =
-                            await openCamera({
-                                facingMode: {
-                                    exact: "environment"
-                                },
-
-                                width: {
-                                    ideal: 1920
-                                },
-
-                                height: {
-                                    ideal: 1080
-                                }
-                            });
-
-                    } catch (exactError) {
-                        console.warn(
-                            "Strengt valg av bakkamera virket ikke.",
-                            exactError
-                        );
-
-                        try {
-                            /*
-                             * Reserveløsning for telefoner
-                             * som ikke godtar exact.
-                             */
-                            cameraStream =
-                                await openCamera({
-                                    facingMode: {
-                                        ideal: "environment"
-                                    },
-
-                                    width: {
-                                        ideal: 1920
-                                    },
-
-                                    height: {
-                                        ideal: 1080
-                                    }
-                                });
-
-                        } catch (fallbackError) {
-                            console.error(
-                                "Kameraet kunne ikke åpnes.",
-                                fallbackError
-                            );
-
-                            status.textContent =
-                                "Bakkameraet kunne ikke åpnes. " +
-                                "Kontroller kameratillatelsen.";
-
-                            captureButton.disabled = true;
-                            return;
-                        }
-                    }
-
-                    video.srcObject = cameraStream;
-
-                    try {
-                        await video.play();
-
-                        status.textContent =
-                            "Bakkameraet er klart.";
-
-                        captureButton.disabled = false;
-
-                    } catch (playError) {
-                        console.error(
-                            "Kamerabildet kunne ikke startes.",
-                            playError
-                        );
-
-                        status.textContent =
-                            "Kamerabildet kunne ikke startes.";
-
-                        captureButton.disabled = true;
-                    }
-                }
-
-                function takePhoto() {
-                    const width = video.videoWidth;
-                    const height = video.videoHeight;
-
-                    if (!width || !height) {
-                        alert(
-                            "Kameraet er ikke klart ennå. " +
-                            "Vent litt og prøv igjen."
-                        );
-
-                        return;
-                    }
-
-                    const borepunkt =
-                        pointInput.value
-                            .trim()
-                            .toUpperCase();
-
-                    if (!borepunkt) {
-                        alert(
-                            "Skriv inn borepunkt før du tar bildet."
-                        );
-
-                        pointInput.focus();
-                        return;
-                    }
-
-                    /*
-                     * Verdiene låses før bildet behandles.
-                     */
-                    const fromDepth = currentDepth;
-                    const toDepth = currentDepth + 1;
-
-                    const intervalText =
-                        fromDepth +
-                        "–" +
-                        toDepth +
-                        " m";
-
-                    canvas.width = width;
-                    canvas.height = height;
-
-                    const context =
-                        canvas.getContext("2d");
-
-                    if (!context) {
-                        alert(
-                            "Telefonen klarte ikke å behandle bildet."
-                        );
-
-                        return;
-                    }
-
-                    context.drawImage(
-                        video,
-                        0,
-                        0,
-                        width,
-                        height
-                    );
-
-                    /*
-                     * Tekststørrelsen tilpasses oppløsningen.
-                     */
-                    const fontSize = Math.max(
-                        40,
-                        Math.round(width * 0.045)
-                    );
-
-                    const leftMargin = Math.max(
-                        24,
-                        Math.round(width * 0.025)
-                    );
-
-                    const topMargin = Math.max(
-                        30,
-                        Math.round(height * 0.04)
-                    );
-
-                    const lineSpacing =
-                        Math.round(fontSize * 1.4);
-
-                    const outlineWidth = Math.max(
-                        4,
-                        Math.round(fontSize * 0.13)
-                    );
-
-                    context.font =
-                        "bold " +
-                        fontSize +
-                        "px Arial, sans-serif";
-
-                    context.textAlign = "left";
-                    context.textBaseline = "top";
-
-                    /*
-                     * Kun tekst på venstre side.
-                     * Ingen grå eller svart bakgrunn.
-                     */
-                    drawOutlinedText(
-                        context,
-                        borepunkt,
-                        leftMargin,
-                        topMargin,
-                        outlineWidth
-                    );
-
-                    drawOutlinedText(
-                        context,
-                        intervalText,
-                        leftMargin,
-                        topMargin + lineSpacing,
-                        outlineWidth
-                    );
-
-                    captureButton.disabled = true;
-
-                    status.textContent =
-                        "Behandler bildet...";
-
-                    canvas.toBlob(
-                        function (blob) {
-                            if (!blob) {
-                                alert(
-                                    "Bildet kunne ikke lagres."
-                                );
-
-                                captureButton.disabled = false;
-
-                                status.textContent =
-                                    "Lagringen mislyktes.";
-
-                                return;
-                            }
-
-                            const fileName =
-                                createSafeFileName(
-                                    borepunkt
-                                ) +
-                                "_" +
-                                fromDepth +
-                                "-" +
-                                toDepth +
-                                "m.jpg";
-
-                            const imageUrl =
-                                URL.createObjectURL(blob);
-
-                            const downloadLink =
-                                document.createElement("a");
-
-                            downloadLink.href = imageUrl;
-                            downloadLink.download = fileName;
-
-                            document.body.appendChild(
-                                downloadLink
-                            );
-
-                            downloadLink.click();
-                            downloadLink.remove();
-
-                            setTimeout(
-                                function () {
-                                    URL.revokeObjectURL(
-                                        imageUrl
-                                    );
-                                },
-                                2000
-                            );
-
-                            /*
-                             * Dybden økes først når bildet
-                             * er ferdig laget.
-                             */
-                            currentDepth += 1;
-                            updateDepth();
-
-                            captureButton.disabled = false;
-
-                            status.textContent =
-                                fileName +
-                                " er lagret. Neste dybde er " +
-                                getDepthText() +
-                                ".";
-                        },
-                        "image/jpeg",
-                        0.95
-                    );
-                }
-
-                captureButton.addEventListener(
-                    "click",
-                    takePhoto
-                );
-
-                backButton.addEventListener(
-                    "click",
-                    function () {
-                        if (currentDepth > 0) {
-                            currentDepth -= 1;
-                            updateDepth();
-
-                            status.textContent =
-                                "Flyttet tilbake til " +
-                                getDepthText() +
-                                ".";
-                        } else {
-                            status.textContent =
-                                "Dybden står allerede på 0–1 m.";
-                        }
-                    }
-                );
-
-                resetButton.addEventListener(
-                    "click",
-                    function () {
-                        currentDepth = 0;
-                        updateDepth();
-
-                        status.textContent =
-                            "Dybden er nullstilt til 0–1 m.";
-                    }
-                );
-
-                pointInput.addEventListener(
-                    "input",
-                    function () {
-                        pointInput.value =
-                            pointInput.value.toUpperCase();
-                    }
-                );
-
-                /*
-                 * Stopper kameraet hvis nettsiden lukkes.
-                 */
-                window.addEventListener(
-                    "beforeunload",
-                    function () {
-                        if (cameraStream) {
-                            cameraStream
-                                .getTracks()
-                                .forEach(function (track) {
-                                    track.stop();
-                                });
-                        }
-                    }
-                );
-
-                updateDepth();
-                await startBackCamera();
-            }
-        );
-    </script>
-
-</body>
-</html>
+ 
