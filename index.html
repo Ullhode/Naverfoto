@@ -144,4 +144,694 @@
             cursor: not-allowed;
         }
 
- 
+        #capture {
+            flex: 0 0 auto;
+            width: 100%;
+            color: white;
+            background: #1769aa;
+            font-size: clamp(19px, 2.8vh, 24px);
+        }
+
+        #buttonRow {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            flex: 0 0 auto;
+            gap: 7px;
+        }
+
+        #back {
+            color: white;
+            background: #555555;
+        }
+
+        #reset {
+            color: #111111;
+            background: #d5d5d5;
+        }
+
+        #status {
+            flex: 0 0 auto;
+            min-height: 17px;
+            overflow: hidden;
+            color: #333333;
+            font-size: 12px;
+            line-height: 17px;
+            text-align: center;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        #canvas {
+            display: none;
+        }
+
+        /*
+         * Ekstra kompakt utforming for telefoner
+         * med lav eller delt skjerm.
+         */
+        @media (max-height: 650px) {
+            #app {
+                gap: 4px;
+                padding-top: 4px;
+                padding-bottom: 4px;
+            }
+
+            h1 {
+                font-size: 19px;
+            }
+
+            label {
+                display: none;
+            }
+
+            input,
+            #depthLabel {
+                height: 40px;
+            }
+
+            button {
+                min-height: 40px;
+            }
+
+            #status {
+                display: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <main id="app">
+        <h1>NaverFoto</h1>
+
+        <section id="topRow">
+            <div id="pointArea">
+                <label for="point">Borepunkt</label>
+
+                <input
+                    id="point"
+                    type="text"
+                    value="SK1"
+                    placeholder="Borepunkt"
+                    autocomplete="off"
+                    autocapitalize="characters"
+                    spellcheck="false"
+                >
+            </div>
+
+            <div
+                id="depthLabel"
+                aria-label="Gjeldende dybde"
+            >
+                0–1 m
+            </div>
+        </section>
+
+        <section id="cameraArea">
+            <video
+                id="camera"
+                autoplay
+                muted
+                playsinline
+            ></video>
+
+            <div id="cameraStatus">
+                Starter bakkameraet …
+            </div>
+        </section>
+
+        <button
+            id="capture"
+            type="button"
+            disabled
+        >
+            TA BILDE
+        </button>
+
+        <section id="buttonRow">
+            <button id="back" type="button">
+                FORRIGE DYBDE
+            </button>
+
+            <button id="reset" type="button">
+                NULLSTILL DYBDE
+            </button>
+        </section>
+
+        <div id="status">
+            Gjør klar kameraet …
+        </div>
+
+        <canvas id="canvas"></canvas>
+    </main>
+
+    <script>
+        document.addEventListener(
+            "DOMContentLoaded",
+            async function () {
+                "use strict";
+
+                let currentDepth = 0;
+                let cameraStream = null;
+                let isSaving = false;
+
+                const pointInput =
+                    document.getElementById("point");
+
+                const depthLabel =
+                    document.getElementById("depthLabel");
+
+                const video =
+                    document.getElementById("camera");
+
+                const canvas =
+                    document.getElementById("canvas");
+
+                const captureButton =
+                    document.getElementById("capture");
+
+                const backButton =
+                    document.getElementById("back");
+
+                const resetButton =
+                    document.getElementById("reset");
+
+                const status =
+                    document.getElementById("status");
+
+                const cameraStatus =
+                    document.getElementById("cameraStatus");
+
+                function getDepthText() {
+                    return (
+                        currentDepth +
+                        "–" +
+                        (currentDepth + 1) +
+                        " m"
+                    );
+                }
+
+                function updateDepth() {
+                    depthLabel.textContent =
+                        getDepthText();
+                }
+
+                /*
+                 * Dato i norsk format:
+                 * 23.10.2026
+                 */
+                function getDateText() {
+                    const now = new Date();
+
+                    const day = String(
+                        now.getDate()
+                    ).padStart(2, "0");
+
+                    const month = String(
+                        now.getMonth() + 1
+                    ).padStart(2, "0");
+
+                    const year =
+                        now.getFullYear();
+
+                    return (
+                        day +
+                        "." +
+                        month +
+                        "." +
+                        year
+                    );
+                }
+
+                /*
+                 * Dato til filnavnet:
+                 * 23-10-2026
+                 */
+                function getFileDate() {
+                    return getDateText()
+                        .replaceAll(".", "-");
+                }
+
+                function createSafeFileName(value) {
+                    const cleanedName = value
+                        .trim()
+                        .toUpperCase()
+                        .replace(
+                            /[^A-ZÆØÅ0-9_-]/gi,
+                            "_"
+                        );
+
+                    return cleanedName || "BOREPUNKT";
+                }
+
+                /*
+                 * Lager hvit tekst med svart omriss,
+                 * men uten grå eller svart bakgrunnsboks.
+                 */
+                function drawOutlinedText(
+                    context,
+                    text,
+                    x,
+                    y,
+                    outlineWidth
+                ) {
+                    context.lineWidth =
+                        outlineWidth;
+
+                    context.lineJoin =
+                        "round";
+
+                    context.miterLimit = 2;
+
+                    context.strokeStyle =
+                        "rgba(0, 0, 0, 0.95)";
+
+                    context.fillStyle =
+                        "#ffffff";
+
+                    context.strokeText(
+                        text,
+                        x,
+                        y
+                    );
+
+                    context.fillText(
+                        text,
+                        x,
+                        y
+                    );
+                }
+
+                async function openCamera(
+                    constraints
+                ) {
+                    return navigator.mediaDevices
+                        .getUserMedia({
+                            video: constraints,
+                            audio: false
+                        });
+                }
+
+                function stopCamera() {
+                    if (!cameraStream) {
+                        return;
+                    }
+
+                    cameraStream
+                        .getTracks()
+                        .forEach(function (track) {
+                            track.stop();
+                        });
+
+                    cameraStream = null;
+                }
+
+                async function startBackCamera() {
+                    if (
+                        !navigator.mediaDevices ||
+                        !navigator.mediaDevices.getUserMedia
+                    ) {
+                        cameraStatus.textContent =
+                            "Nettleseren støtter ikke kamera.";
+
+                        status.textContent =
+                            "Åpne siden i Chrome via HTTPS.";
+
+                        captureButton.disabled = true;
+                        return;
+                    }
+
+                    stopCamera();
+
+                    try {
+                        /*
+                         * Krever bakovervendt kamera.
+                         */
+                        cameraStream =
+                            await openCamera({
+                                facingMode: {
+                                    exact: "environment"
+                                },
+
+                                width: {
+                                    ideal: 1920
+                                },
+
+                                height: {
+                                    ideal: 1080
+                                }
+                            });
+                    } catch (exactError) {
+                        console.warn(
+                            "Strengt valg av bakkamera feilet.",
+                            exactError
+                        );
+
+                        try {
+                            /*
+                             * Reserveløsning dersom telefonen
+                             * ikke godtar exact.
+                             */
+                            cameraStream =
+                                await openCamera({
+                                    facingMode: {
+                                        ideal: "environment"
+                                    },
+
+                                    width: {
+                                        ideal: 1920
+                                    },
+
+                                    height: {
+                                        ideal: 1080
+                                    }
+                                });
+                        } catch (fallbackError) {
+                            console.error(
+                                "Bakkameraet kunne ikke åpnes.",
+                                fallbackError
+                            );
+
+                            cameraStatus.textContent =
+                                "Kameraet kunne ikke åpnes.";
+
+                            status.textContent =
+                                "Kontroller kameratillatelsen.";
+
+                            captureButton.disabled = true;
+                            return;
+                        }
+                    }
+
+                    video.srcObject =
+                        cameraStream;
+
+                    try {
+                        await video.play();
+
+                        cameraStatus.textContent =
+                            "Bakkamera klart";
+
+                        status.textContent =
+                            "Klar til å ta bilde.";
+
+                        captureButton.disabled =
+                            false;
+
+                        /*
+                         * Skjuler kamerameldingen etter
+                         * to sekunder for å gi større bilde.
+                         */
+                        setTimeout(function () {
+                            if (cameraStream) {
+                                cameraStatus.style.display =
+                                    "none";
+                            }
+                        }, 2000);
+                    } catch (playError) {
+                        console.error(
+                            "Kamerabildet kunne ikke startes.",
+                            playError
+                        );
+
+                        cameraStatus.textContent =
+                            "Kamerabildet kunne ikke startes.";
+
+                        captureButton.disabled = true;
+                    }
+                }
+
+                function takePhoto() {
+                    if (isSaving) {
+                        return;
+                    }
+
+                    const width =
+                        video.videoWidth;
+
+                    const height =
+                        video.videoHeight;
+
+                    if (!width || !height) {
+                        alert(
+                            "Kameraet er ikke klart ennå. " +
+                            "Vent litt og prøv igjen."
+                        );
+
+                        return;
+                    }
+
+                    const borepunkt =
+                        pointInput.value
+                            .trim()
+                            .toUpperCase();
+
+                    if (!borepunkt) {
+                        alert(
+                            "Skriv inn borepunkt før du tar bildet."
+                        );
+
+                        pointInput.focus();
+                        return;
+                    }
+
+                    const fromDepth =
+                        currentDepth;
+
+                    const toDepth =
+                        currentDepth + 1;
+
+                    const intervalText =
+                        fromDepth +
+                        "–" +
+                        toDepth +
+                        " m";
+
+                    const dateText =
+                        getDateText();
+
+                    canvas.width = width;
+                    canvas.height = height;
+
+                    const context =
+                        canvas.getContext("2d");
+
+                    if (!context) {
+                        alert(
+                            "Telefonen klarte ikke å behandle bildet."
+                        );
+
+                        return;
+                    }
+
+                    context.drawImage(
+                        video,
+                        0,
+                        0,
+                        width,
+                        height
+                    );
+
+                    /*
+                     * Teksten tilpasses automatisk
+                     * til bildets oppløsning.
+                     */
+                    const fontSize = Math.max(
+                        38,
+                        Math.round(width * 0.042)
+                    );
+
+                    const leftMargin = Math.max(
+                        22,
+                        Math.round(width * 0.025)
+                    );
+
+                    const topMargin = Math.max(
+                        28,
+                        Math.round(height * 0.04)
+                    );
+
+                    const lineSpacing =
+                        Math.round(fontSize * 1.35);
+
+                    const outlineWidth = Math.max(
+                        4,
+                        Math.round(fontSize * 0.13)
+                    );
+
+                    context.font =
+                        "bold " +
+                        fontSize +
+                        "px Arial, sans-serif";
+
+                    context.textAlign = "left";
+                    context.textBaseline = "top";
+
+                    /*
+                     * Bare tekst på venstre side.
+                     * Ingen bakgrunnsboks.
+                     */
+                    drawOutlinedText(
+                        context,
+                        borepunkt,
+                        leftMargin,
+                        topMargin,
+                        outlineWidth
+                    );
+
+                    drawOutlinedText(
+                        context,
+                        intervalText,
+                        leftMargin,
+                        topMargin + lineSpacing,
+                        outlineWidth
+                    );
+
+                    drawOutlinedText(
+                        context,
+                        dateText,
+                        leftMargin,
+                        topMargin + lineSpacing * 2,
+                        outlineWidth
+                    );
+
+                    isSaving = true;
+                    captureButton.disabled = true;
+                    captureButton.textContent =
+                        "LAGRER …";
+
+                    status.textContent =
+                        "Behandler bildet …";
+
+                    canvas.toBlob(
+                        function (blob) {
+                            if (!blob) {
+                                alert(
+                                    "Bildet kunne ikke lagres."
+                                );
+
+                                isSaving = false;
+                                captureButton.disabled = false;
+                                captureButton.textContent =
+                                    "TA BILDE";
+
+                                status.textContent =
+                                    "Lagringen mislyktes.";
+
+                                return;
+                            }
+
+                            const fileName =
+                                createSafeFileName(
+                                    borepunkt
+                                ) +
+                                "_" +
+                                fromDepth +
+                                "-" +
+                                toDepth +
+                                "m_" +
+                                getFileDate() +
+                                ".jpg";
+
+                            const imageUrl =
+                                URL.createObjectURL(blob);
+
+                            const downloadLink =
+                                document.createElement("a");
+
+                            downloadLink.href =
+                                imageUrl;
+
+                            downloadLink.download =
+                                fileName;
+
+                            document.body.appendChild(
+                                downloadLink
+                            );
+
+                            downloadLink.click();
+                            downloadLink.remove();
+
+                            setTimeout(
+                                function () {
+                                    URL.revokeObjectURL(
+                                        imageUrl
+                                    );
+                                },
+                                2000
+                            );
+
+                            currentDepth += 1;
+                            updateDepth();
+
+                            isSaving = false;
+                            captureButton.disabled = false;
+                            captureButton.textContent =
+                                "TA BILDE";
+
+                            status.textContent =
+                                "Lagret: " +
+                                fileName;
+                        },
+                        "image/jpeg",
+                        0.95
+                    );
+                }
+
+                captureButton.addEventListener(
+                    "click",
+                    takePhoto
+                );
+
+                backButton.addEventListener(
+                    "click",
+                    function () {
+                        if (currentDepth > 0) {
+                            currentDepth -= 1;
+                            updateDepth();
+
+                            status.textContent =
+                                "Tilbake til " +
+                                getDepthText() +
+                                ".";
+                        } else {
+                            status.textContent =
+                                "Dybden står allerede på 0–1 m.";
+                        }
+                    }
+                );
+
+                resetButton.addEventListener(
+                    "click",
+                    function () {
+                        currentDepth = 0;
+                        updateDepth();
+
+                        status.textContent =
+                            "Dybden er nullstilt.";
+                    }
+                );
+
+                pointInput.addEventListener(
+                    "input",
+                    function () {
+                        pointInput.value =
+                            pointInput.value
+                                .toUpperCase();
+                    }
+                );
+
+                window.addEventListener(
+                    "beforeunload",
+                    stopCamera
+                );
+
+                updateDepth();
+                await startBackCamera();
+            }
+        );
+    </script>
+
+</body>
+</html>
