@@ -35,7 +35,6 @@
 
             width: 100%;
             max-width: 700px;
-
             min-height: 100vh;
             min-height: 100dvh;
 
@@ -58,18 +57,23 @@
             text-align: center;
         }
 
-        #topRow {
+        /*
+         * Prosjektnummer og borepunkt står på samme rad
+         * for å bruke minst mulig plass på skjermen.
+         */
+        #inputRow {
             display: grid;
-            grid-template-columns: minmax(0, 1fr) 105px;
-            align-items: end;
-
+            grid-template-columns: 1fr 1fr;
             flex: 0 0 auto;
             gap: 6px;
         }
 
+        .inputGroup {
+            min-width: 0;
+        }
+
         label {
             display: block;
-
             margin: 0 0 2px;
 
             font-size: 13px;
@@ -87,40 +91,52 @@
 
             background: white;
 
-            font-size: 21px;
+            font-size: 19px;
             font-weight: bold;
             text-transform: uppercase;
         }
 
-        #depthLabel {
+        /*
+         * Dybden vises på en egen kompakt linje.
+         */
+        #depthRow {
             display: flex;
             align-items: center;
-            justify-content: center;
+            justify-content: space-between;
 
-            height: 43px;
-            padding: 3px 6px;
+            flex: 0 0 auto;
+
+            min-height: 39px;
+            padding: 3px 8px;
 
             border: 2px solid #1769aa;
             border-radius: 7px;
 
             background: white;
+        }
 
-            font-size: 21px;
+        #depthTitle {
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        #depthLabel {
+            font-size: 22px;
             font-weight: bold;
             white-space: nowrap;
         }
 
         /*
-         * Kameraet bruker mesteparten av den ledige plassen.
-         * minimumshøyden gjør at kamerabildet ikke blir for lite.
+         * Kameraet bruker mesteparten av tilgjengelig plass.
+         * Siden kan skrolles dersom skjermen er lav.
          */
         #cameraArea {
             position: relative;
 
             width: 100%;
-            min-height: 290px;
+            min-height: 310px;
 
-            flex: 1 1 420px;
+            flex: 1 1 430px;
 
             overflow: hidden;
 
@@ -133,14 +149,9 @@
 
             width: 100%;
             height: 100%;
-            min-height: 290px;
+            min-height: 310px;
 
             background: black;
-
-            /*
-             * contain viser hele kamerabildet.
-             * Det kan derfor bli svarte kanter.
-             */
             object-fit: contain;
         }
 
@@ -185,7 +196,7 @@
 
         #capture {
             width: 100%;
-            min-height: 49px;
+            min-height: 50px;
 
             flex: 0 0 auto;
 
@@ -195,9 +206,6 @@
             font-size: 21px;
         }
 
-        /*
-         * Dybdeknappene står på samme rad.
-         */
         #depthButtons {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -248,12 +256,12 @@
         }
 
         /*
-         * På lave skjermer beholdes et stort kamera,
-         * men siden kan skrolles ned til knappene.
+         * På lave skjermer beholdes et stort kamera.
+         * Brukeren kan skrolle ned til knappene.
          */
-        @media (max-height: 720px) {
+        @media (max-height: 760px) {
             #app {
-                min-height: 720px;
+                min-height: 780px;
                 gap: 4px;
             }
 
@@ -263,21 +271,25 @@
             }
 
             label {
-                display: none;
+                font-size: 11px;
             }
 
-            input,
-            #depthLabel {
-                height: 40px;
+            input {
+                height: 39px;
+                font-size: 17px;
+            }
+
+            #depthRow {
+                min-height: 36px;
             }
 
             #cameraArea,
             video {
-                min-height: 300px;
+                min-height: 310px;
             }
 
             #cameraArea {
-                flex-basis: 300px;
+                flex-basis: 310px;
             }
 
             #status {
@@ -285,17 +297,24 @@
             }
         }
 
+        /*
+         * Tilpasning for smale telefoner.
+         */
         @media (max-width: 370px) {
-            #topRow {
-                grid-template-columns: minmax(0, 1fr) 92px;
-            }
-
-            #depthLabel {
-                font-size: 18px;
+            input {
+                font-size: 16px;
             }
 
             #depthButtons button {
                 font-size: 13px;
+            }
+
+            #depthTitle {
+                font-size: 12px;
+            }
+
+            #depthLabel {
+                font-size: 20px;
             }
         }
     </style>
@@ -307,9 +326,25 @@
 
         <h1>NaverFoto</h1>
 
-        <section id="topRow">
+        <section id="inputRow">
 
-            <div>
+            <div class="inputGroup">
+                <label for="project">
+                    Prosjektnummer
+                </label>
+
+                <input
+                    id="project"
+                    type="text"
+                    value=""
+                    placeholder="F.eks. 12345"
+                    autocomplete="off"
+                    autocapitalize="characters"
+                    spellcheck="false"
+                >
+            </div>
+
+            <div class="inputGroup">
                 <label for="point">
                     Borepunkt
                 </label>
@@ -318,20 +353,26 @@
                     id="point"
                     type="text"
                     value="SK1"
-                    placeholder="Borepunkt"
+                    placeholder="F.eks. SK1"
                     autocomplete="off"
                     autocapitalize="characters"
                     spellcheck="false"
                 >
             </div>
 
-            <div
+        </section>
+
+        <section id="depthRow">
+            <span id="depthTitle">
+                Valgt dybde
+            </span>
+
+            <span
                 id="depthLabel"
                 aria-label="Valgt dybde"
             >
                 0–1 m
-            </div>
-
+            </span>
         </section>
 
         <section id="cameraArea">
@@ -382,7 +423,11 @@
             NULLSTILL TIL 0–1 m
         </button>
 
-        <div id="status">
+        <div
+            id="status"
+            role="status"
+            aria-live="polite"
+        >
             Gjør klar kameraet …
         </div>
 
@@ -399,6 +444,9 @@
                 let currentDepth = 0;
                 let cameraStream = null;
                 let isSaving = false;
+
+                const projectInput =
+                    document.getElementById("project");
 
                 const pointInput =
                     document.getElementById("point");
@@ -431,8 +479,61 @@
                     document.getElementById("cameraStatus");
 
                 /*
-                 * Viser valgt dybde.
+                 * Henter eventuelle lagrede feltverdier.
+                 * Dette gjør at prosjekt og borepunkt huskes
+                 * neste gang appen åpnes.
                  */
+                function loadSavedValues() {
+                    try {
+                        const savedProject =
+                            localStorage.getItem(
+                                "naverfotoProject"
+                            );
+
+                        const savedPoint =
+                            localStorage.getItem(
+                                "naverfotoPoint"
+                            );
+
+                        if (savedProject) {
+                            projectInput.value =
+                                savedProject;
+                        }
+
+                        if (savedPoint) {
+                            pointInput.value =
+                                savedPoint;
+                        }
+                    } catch (error) {
+                        console.warn(
+                            "Kunne ikke hente lagrede verdier.",
+                            error
+                        );
+                    }
+                }
+
+                /*
+                 * Lagrer prosjekt og borepunkt på telefonen.
+                 */
+                function saveInputValues() {
+                    try {
+                        localStorage.setItem(
+                            "naverfotoProject",
+                            projectInput.value
+                        );
+
+                        localStorage.setItem(
+                            "naverfotoPoint",
+                            pointInput.value
+                        );
+                    } catch (error) {
+                        console.warn(
+                            "Kunne ikke lagre feltverdiene.",
+                            error
+                        );
+                    }
+                }
+
                 function getDepthText() {
                     return (
                         currentDepth +
@@ -449,7 +550,7 @@
 
                 /*
                  * Dato på bildet:
-                 * 23.10.2026
+                 * 26.10.2026
                  */
                 function getDateText() {
                     const now =
@@ -477,14 +578,20 @@
 
                 /*
                  * Dato i filnavnet:
-                 * 23-10-2026
+                 * 26-10-2026
                  */
                 function getFileDate() {
                     return getDateText()
                         .replaceAll(".", "-");
                 }
 
-                function createSafeFileName(value) {
+                /*
+                 * Fjerner tegn som ikke passer i filnavn.
+                 */
+                function createSafeFileName(
+                    value,
+                    fallback
+                ) {
                     const cleanedName =
                         value
                             .trim()
@@ -492,14 +599,18 @@
                             .replace(
                                 /[^A-ZÆØÅ0-9_-]/gi,
                                 "_"
+                            )
+                            .replace(
+                                /_+/g,
+                                "_"
                             );
 
-                    return cleanedName || "BOREPUNKT";
+                    return cleanedName || fallback;
                 }
 
                 /*
-                 * Hvit tekst med svart omriss.
-                 * Ingen grå eller svart bakgrunnsboks.
+                 * Tegner hvit tekst med svart omriss.
+                 * Det brukes ingen bakgrunnsboks.
                  */
                 function drawOutlinedText(
                     context,
@@ -560,7 +671,7 @@
                 }
 
                 /*
-                 * Starter bakkameraet.
+                 * Starter telefonens bakkamera.
                  */
                 async function startBackCamera() {
                     if (
@@ -581,7 +692,7 @@
 
                     try {
                         /*
-                         * Forsøker først å kreve bakkamera.
+                         * Første forsøk krever bakkamera.
                          */
                         cameraStream =
                             await openCamera({
@@ -607,7 +718,7 @@
                         try {
                             /*
                              * Reserveløsning for telefoner
-                             * som ikke godtar exact.
+                             * som ikke støtter exact.
                              */
                             cameraStream =
                                 await openCamera({
@@ -681,7 +792,8 @@
                 }
 
                 /*
-                 * Tar bilde, legger på tekst og lagrer.
+                 * Tar bilde, legger på teksten og
+                 * lagrer bildet på telefonen.
                  */
                 function takePhoto() {
                     if (isSaving) {
@@ -703,10 +815,24 @@
                         return;
                     }
 
+                    const projectNumber =
+                        projectInput.value
+                            .trim()
+                            .toUpperCase();
+
                     const borepunkt =
                         pointInput.value
                             .trim()
                             .toUpperCase();
+
+                    if (!projectNumber) {
+                        alert(
+                            "Skriv inn prosjektnummer før du tar bildet."
+                        );
+
+                        projectInput.focus();
+                        return;
+                    }
 
                     if (!borepunkt) {
                         alert(
@@ -718,7 +844,7 @@
                     }
 
                     /*
-                     * Låser borepunkt og dybde til dette bildet.
+                     * Låser verdiene som hører til bildet.
                      */
                     const fromDepth =
                         currentDepth;
@@ -726,7 +852,16 @@
                     const toDepth =
                         currentDepth + 1;
 
+                    const projectText =
+                        "Prosjekt: " +
+                        projectNumber;
+
+                    const pointText =
+                        "Borepunkt: " +
+                        borepunkt;
+
                     const intervalText =
+                        "Dybde: " +
                         fromDepth +
                         "–" +
                         toDepth +
@@ -762,12 +897,12 @@
 
                     /*
                      * Tekststørrelsen tilpasses
-                     * bildets oppløsning.
+                     * oppløsningen på bildet.
                      */
                     const fontSize =
                         Math.max(
-                            38,
-                            Math.round(width * 0.042)
+                            34,
+                            Math.round(width * 0.038)
                         );
 
                     const leftMargin =
@@ -783,7 +918,7 @@
                         );
 
                     const lineSpacing =
-                        Math.round(fontSize * 1.35);
+                        Math.round(fontSize * 1.32);
 
                     const outlineWidth =
                         Math.max(
@@ -803,12 +938,12 @@
                         "top";
 
                     /*
-                     * Tekst øverst på venstre side.
-                     * Ingen bakgrunnsboks.
+                     * Teksten står øverst på venstre side.
+                     * Ingen grå eller svart bakgrunnsboks.
                      */
                     drawOutlinedText(
                         context,
-                        borepunkt,
+                        projectText,
                         leftMargin,
                         topMargin,
                         outlineWidth
@@ -816,7 +951,7 @@
 
                     drawOutlinedText(
                         context,
-                        intervalText,
+                        pointText,
                         leftMargin,
                         topMargin + lineSpacing,
                         outlineWidth
@@ -824,9 +959,17 @@
 
                     drawOutlinedText(
                         context,
-                        dateText,
+                        intervalText,
                         leftMargin,
                         topMargin + lineSpacing * 2,
+                        outlineWidth
+                    );
+
+                    drawOutlinedText(
+                        context,
+                        dateText,
+                        leftMargin,
+                        topMargin + lineSpacing * 3,
                         outlineWidth
                     );
 
@@ -841,6 +984,9 @@
                     status.textContent =
                         "Behandler bildet …";
 
+                    /*
+                     * Gjør canvas-bildet om til en JPEG-fil.
+                     */
                     canvas.toBlob(
                         function (blob) {
                             if (!blob) {
@@ -862,10 +1008,22 @@
                                 return;
                             }
 
-                            const fileName =
+                            const safeProject =
                                 createSafeFileName(
-                                    borepunkt
-                                ) +
+                                    projectNumber,
+                                    "PROSJEKT"
+                                );
+
+                            const safePoint =
+                                createSafeFileName(
+                                    borepunkt,
+                                    "BOREPUNKT"
+                                );
+
+                            const fileName =
+                                safeProject +
+                                "_" +
+                                safePoint +
                                 "_" +
                                 fromDepth +
                                 "-" +
@@ -903,8 +1061,8 @@
                             );
 
                             /*
-                             * Går automatisk videre etter
-                             * at bildet er lagret.
+                             * Går automatisk til neste dybde
+                             * når bildet er ferdig lagret.
                              */
                             currentDepth += 1;
                             updateDepth();
@@ -932,7 +1090,7 @@
                 );
 
                 /*
-                 * Ett dybdeintervall tilbake.
+                 * Flytter ett intervall tilbake.
                  */
                 backButton.addEventListener(
                     "click",
@@ -952,7 +1110,8 @@
                 );
 
                 /*
-                 * Hopper over en prøve uten å lagre bilde.
+                 * Hopper over en prøve uten
+                 * å ta eller lagre et bilde.
                  */
                 nextButton.addEventListener(
                     "click",
@@ -967,7 +1126,7 @@
                 );
 
                 /*
-                 * Tilbake til første dybde.
+                 * Nullstiller dybden.
                  */
                 resetButton.addEventListener(
                     "click",
@@ -981,7 +1140,23 @@
                 );
 
                 /*
-                 * Gjør borepunktet automatisk til store bokstaver.
+                 * Gjør prosjektnummeret automatisk
+                 * til store bokstaver og husker verdien.
+                 */
+                projectInput.addEventListener(
+                    "input",
+                    function () {
+                        projectInput.value =
+                            projectInput.value
+                                .toUpperCase();
+
+                        saveInputValues();
+                    }
+                );
+
+                /*
+                 * Gjør borepunktet automatisk
+                 * til store bokstaver og husker verdien.
                  */
                 pointInput.addEventListener(
                     "input",
@@ -989,6 +1164,8 @@
                         pointInput.value =
                             pointInput.value
                                 .toUpperCase();
+
+                        saveInputValues();
                     }
                 );
 
@@ -997,6 +1174,7 @@
                     stopCamera
                 );
 
+                loadSavedValues();
                 updateDepth();
                 await startBackCamera();
             }
