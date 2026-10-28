@@ -32,12 +32,10 @@
         #app {
             display: flex;
             flex-direction: column;
-
             width: 100%;
             max-width: 700px;
             min-height: 100vh;
             min-height: 100dvh;
-
             margin: 0 auto;
 
             padding:
@@ -49,22 +47,15 @@
         }
 
         h1 {
-            flex: 0 0 auto;
             margin: 0;
-
             font-size: 21px;
             line-height: 25px;
             text-align: center;
         }
 
-        /*
-         * Prosjektnummer og borepunkt står på samme rad
-         * for å bruke minst mulig plass på skjermen.
-         */
         #inputRow {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            flex: 0 0 auto;
             gap: 6px;
         }
 
@@ -75,7 +66,6 @@
         label {
             display: block;
             margin: 0 0 2px;
-
             font-size: 13px;
             font-weight: bold;
         }
@@ -83,108 +73,93 @@
         input {
             width: 100%;
             height: 43px;
-
             padding: 5px 9px;
-
             border: 2px solid #555555;
             border-radius: 7px;
-
             background: white;
-
-            font-size: 19px;
+            font-size: 18px;
             font-weight: bold;
+        }
+
+        #project,
+        #point {
             text-transform: uppercase;
         }
 
-        /*
-         * Dybden vises på en egen kompakt linje.
-         */
-        #depthRow {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-
-            flex: 0 0 auto;
-
-            min-height: 39px;
-            padding: 3px 8px;
-
+        #depthEditor {
+            display: grid;
+            grid-template-columns: 1fr 26px 1fr;
+            align-items: end;
+            gap: 4px;
+            padding: 5px;
             border: 2px solid #1769aa;
-            border-radius: 7px;
-
-            background: white;
+            border-radius: 8px;
+            background: #ffffff;
         }
 
-        #depthTitle {
-            font-size: 14px;
+        #depthSeparator {
+            padding-bottom: 10px;
+            font-size: 21px;
             font-weight: bold;
+            text-align: center;
         }
 
-        #depthLabel {
-            font-size: 22px;
+        .depthInput {
+            height: 42px;
+            border-color: #1769aa;
+            font-size: 20px;
+            text-align: center;
+        }
+
+        #depthPreview {
+            min-height: 25px;
+            margin: 0;
+            color: #123f66;
+            font-size: 19px;
             font-weight: bold;
-            white-space: nowrap;
+            line-height: 25px;
+            text-align: center;
         }
 
-        /*
-         * Kameraet bruker mesteparten av tilgjengelig plass.
-         * Siden kan skrolles dersom skjermen er lav.
-         */
         #cameraArea {
             position: relative;
-
             width: 100%;
             min-height: 310px;
-
             flex: 1 1 430px;
-
             overflow: hidden;
-
             border-radius: 9px;
             background: black;
         }
 
         video {
             display: block;
-
             width: 100%;
             height: 100%;
             min-height: 310px;
-
             background: black;
             object-fit: contain;
         }
 
         #cameraStatus {
             position: absolute;
-
             left: 6px;
             bottom: 6px;
-
             max-width: calc(100% - 12px);
-
             padding: 3px 7px;
-
             border-radius: 4px;
-
             color: white;
             background: rgba(0, 0, 0, 0.55);
-
             font-size: 12px;
-
             pointer-events: none;
         }
 
         button {
             min-height: 43px;
             padding: 5px;
-
             border: none;
             border-radius: 8px;
-
             font-size: 16px;
             font-weight: bold;
-
             cursor: pointer;
             touch-action: manipulation;
         }
@@ -197,20 +172,14 @@
         #capture {
             width: 100%;
             min-height: 50px;
-
-            flex: 0 0 auto;
-
             color: white;
             background: #1769aa;
-
             font-size: 21px;
         }
 
         #depthButtons {
             display: grid;
             grid-template-columns: 1fr 1fr;
-
-            flex: 0 0 auto;
             gap: 6px;
         }
 
@@ -227,79 +196,42 @@
         #reset {
             width: 100%;
             min-height: 40px;
-
-            flex: 0 0 auto;
-
             color: #111111;
             background: #d0d0d0;
-
             font-size: 15px;
         }
 
         #status {
-            min-height: 17px;
-
-            flex: 0 0 auto;
+            min-height: 18px;
             overflow: hidden;
-
             color: #333333;
-
             font-size: 12px;
-            line-height: 17px;
+            line-height: 18px;
             text-align: center;
             text-overflow: ellipsis;
             white-space: nowrap;
+        }
+
+        #status.error {
+            color: #b00020;
+            font-weight: bold;
         }
 
         #canvas {
             display: none;
         }
 
-        /*
-         * På lave skjermer beholdes et stort kamera.
-         * Brukeren kan skrolle ned til knappene.
-         */
-        @media (max-height: 760px) {
+        @media (max-height: 800px) {
             #app {
-                min-height: 780px;
-                gap: 4px;
-            }
-
-            h1 {
-                font-size: 18px;
-                line-height: 21px;
-            }
-
-            label {
-                font-size: 11px;
-            }
-
-            input {
-                height: 39px;
-                font-size: 17px;
-            }
-
-            #depthRow {
-                min-height: 36px;
+                min-height: 830px;
             }
 
             #cameraArea,
             video {
                 min-height: 310px;
             }
-
-            #cameraArea {
-                flex-basis: 310px;
-            }
-
-            #status {
-                display: none;
-            }
         }
 
-        /*
-         * Tilpasning for smale telefoner.
-         */
         @media (max-width: 370px) {
             input {
                 font-size: 16px;
@@ -307,14 +239,6 @@
 
             #depthButtons button {
                 font-size: 13px;
-            }
-
-            #depthTitle {
-                font-size: 12px;
-            }
-
-            #depthLabel {
-                font-size: 20px;
             }
         }
     </style>
@@ -329,14 +253,11 @@
         <section id="inputRow">
 
             <div class="inputGroup">
-                <label for="project">
-                    Prosjektnummer
-                </label>
+                <label for="project">Prosjektnummer</label>
 
                 <input
                     id="project"
                     type="text"
-                    value=""
                     placeholder="F.eks. 12345"
                     autocomplete="off"
                     autocapitalize="characters"
@@ -345,9 +266,7 @@
             </div>
 
             <div class="inputGroup">
-                <label for="point">
-                    Borepunkt
-                </label>
+                <label for="point">Borepunkt</label>
 
                 <input
                     id="point"
@@ -362,18 +281,41 @@
 
         </section>
 
-        <section id="depthRow">
-            <span id="depthTitle">
-                Valgt dybde
-            </span>
+        <section id="depthEditor">
 
-            <span
-                id="depthLabel"
-                aria-label="Valgt dybde"
-            >
-                0–1 m
-            </span>
+            <div class="inputGroup">
+                <label for="fromDepth">Fra dybde (m)</label>
+
+                <input
+                    id="fromDepth"
+                    class="depthInput"
+                    type="text"
+                    inputmode="decimal"
+                    value="0"
+                    placeholder="0"
+                    autocomplete="off"
+                >
+            </div>
+
+            <div id="depthSeparator">–</div>
+
+            <div class="inputGroup">
+                <label for="toDepth">Til dybde (m)</label>
+
+                <input
+                    id="toDepth"
+                    class="depthInput"
+                    type="text"
+                    inputmode="decimal"
+                    value="1"
+                    placeholder="1"
+                    autocomplete="off"
+                >
+            </div>
+
         </section>
+
+        <div id="depthPreview">0–1 m</div>
 
         <section id="cameraArea">
 
@@ -400,26 +342,17 @@
 
         <section id="depthButtons">
 
-            <button
-                id="back"
-                type="button"
-            >
+            <button id="back" type="button">
                 ◀ FORRIGE
             </button>
 
-            <button
-                id="next"
-                type="button"
-            >
+            <button id="next" type="button">
                 NESTE ▶
             </button>
 
         </section>
 
-        <button
-            id="reset"
-            type="button"
-        >
+        <button id="reset" type="button">
             NULLSTILL TIL 0–1 m
         </button>
 
@@ -441,7 +374,8 @@
             async function () {
                 "use strict";
 
-                let currentDepth = 0;
+                const NORMAL_STEP = 1;
+
                 let cameraStream = null;
                 let isSaving = false;
 
@@ -451,8 +385,14 @@
                 const pointInput =
                     document.getElementById("point");
 
-                const depthLabel =
-                    document.getElementById("depthLabel");
+                const fromDepthInput =
+                    document.getElementById("fromDepth");
+
+                const toDepthInput =
+                    document.getElementById("toDepth");
+
+                const depthPreview =
+                    document.getElementById("depthPreview");
 
                 const video =
                     document.getElementById("camera");
@@ -478,44 +418,180 @@
                 const cameraStatus =
                     document.getElementById("cameraStatus");
 
-                /*
-                 * Henter eventuelle lagrede feltverdier.
-                 * Dette gjør at prosjekt og borepunkt huskes
-                 * neste gang appen åpnes.
-                 */
-                function loadSavedValues() {
-                    try {
-                        const savedProject =
-                            localStorage.getItem(
-                                "naverfotoProject"
-                            );
-
-                        const savedPoint =
-                            localStorage.getItem(
-                                "naverfotoPoint"
-                            );
-
-                        if (savedProject) {
-                            projectInput.value =
-                                savedProject;
-                        }
-
-                        if (savedPoint) {
-                            pointInput.value =
-                                savedPoint;
-                        }
-                    } catch (error) {
-                        console.warn(
-                            "Kunne ikke hente lagrede verdier.",
-                            error
-                        );
-                    }
+                function setStatus(message, isError = false) {
+                    status.textContent = message;
+                    status.classList.toggle(
+                        "error",
+                        isError
+                    );
                 }
 
                 /*
-                 * Lagrer prosjekt og borepunkt på telefonen.
+                 * Godtar både 4,35 og 4.35.
                  */
-                function saveInputValues() {
+                function parseDepth(value) {
+                    const cleaned = String(value)
+                        .trim()
+                        .replace(",", ".");
+
+                    if (cleaned === "") {
+                        return null;
+                    }
+
+                    const number = Number(cleaned);
+
+                    if (
+                        !Number.isFinite(number) ||
+                        number < 0
+                    ) {
+                        return null;
+                    }
+
+                    return Math.round(number * 100) / 100;
+                }
+
+                /*
+                 * Viser norske desimaler:
+                 * 4.35 blir 4,35.
+                 */
+                function formatDepth(value) {
+                    return new Intl.NumberFormat(
+                        "no-NO",
+                        {
+                            minimumFractionDigits: 0,
+                            maximumFractionDigits: 2
+                        }
+                    ).format(value);
+                }
+
+                function getDepths() {
+                    const fromDepth =
+                        parseDepth(fromDepthInput.value);
+
+                    const toDepth =
+                        parseDepth(toDepthInput.value);
+
+                    if (
+                        fromDepth === null ||
+                        toDepth === null
+                    ) {
+                        return {
+                            valid: false,
+                            message:
+                                "Skriv inn gyldige dybder."
+                        };
+                    }
+
+                    if (toDepth <= fromDepth) {
+                        return {
+                            valid: false,
+                            message:
+                                "Til-dybden må være større enn fra-dybden."
+                        };
+                    }
+
+                    return {
+                        valid: true,
+                        from: fromDepth,
+                        to: toDepth
+                    };
+                }
+
+                function getDepthText(from, to) {
+                    return (
+                        formatDepth(from) +
+                        "–" +
+                        formatDepth(to) +
+                        " m"
+                    );
+                }
+
+                function updateDepthPreview() {
+                    const depths = getDepths();
+
+                    if (!depths.valid) {
+                        depthPreview.textContent =
+                            "Kontroller dybden";
+
+                        depthPreview.style.color =
+                            "#b00020";
+
+                        return;
+                    }
+
+                    depthPreview.textContent =
+                        getDepthText(
+                            depths.from,
+                            depths.to
+                        );
+
+                    depthPreview.style.color =
+                        "#123f66";
+                }
+
+                function setDepths(from, to) {
+                    fromDepthInput.value =
+                        formatDepth(from);
+
+                    toDepthInput.value =
+                        formatDepth(to);
+
+                    updateDepthPreview();
+                    saveValues();
+                }
+
+                function getDateText() {
+                    const now = new Date();
+
+                    const day =
+                        String(now.getDate())
+                            .padStart(2, "0");
+
+                    const month =
+                        String(now.getMonth() + 1)
+                            .padStart(2, "0");
+
+                    return (
+                        day +
+                        "." +
+                        month +
+                        "." +
+                        now.getFullYear()
+                    );
+                }
+
+                function getFileDate() {
+                    return getDateText()
+                        .replaceAll(".", "-");
+                }
+
+                function safeFilePart(
+                    value,
+                    fallback
+                ) {
+                    const cleaned = value
+                        .trim()
+                        .toUpperCase()
+                        .replace(
+                            /[^A-ZÆØÅ0-9_-]/gi,
+                            "_"
+                        )
+                        .replace(/_+/g, "_");
+
+                    return cleaned || fallback;
+                }
+
+                /*
+                 * Dybde til filnavn.
+                 * 4,35 blir 4-35.
+                 */
+                function fileDepth(value) {
+                    return formatDepth(value)
+                        .replace(",", "-")
+                        .replace(/\s/g, "");
+                }
+
+                function saveValues() {
                     try {
                         localStorage.setItem(
                             "naverfotoProject",
@@ -526,92 +602,71 @@
                             "naverfotoPoint",
                             pointInput.value
                         );
+
+                        localStorage.setItem(
+                            "naverfotoFromDepth",
+                            fromDepthInput.value
+                        );
+
+                        localStorage.setItem(
+                            "naverfotoToDepth",
+                            toDepthInput.value
+                        );
                     } catch (error) {
                         console.warn(
-                            "Kunne ikke lagre feltverdiene.",
+                            "Kunne ikke lagre verdiene.",
                             error
                         );
                     }
                 }
 
-                function getDepthText() {
-                    return (
-                        currentDepth +
-                        "–" +
-                        (currentDepth + 1) +
-                        " m"
-                    );
-                }
-
-                function updateDepth() {
-                    depthLabel.textContent =
-                        getDepthText();
-                }
-
-                /*
-                 * Dato på bildet:
-                 * 26.10.2026
-                 */
-                function getDateText() {
-                    const now =
-                        new Date();
-
-                    const day =
-                        String(now.getDate())
-                            .padStart(2, "0");
-
-                    const month =
-                        String(now.getMonth() + 1)
-                            .padStart(2, "0");
-
-                    const year =
-                        now.getFullYear();
-
-                    return (
-                        day +
-                        "." +
-                        month +
-                        "." +
-                        year
-                    );
-                }
-
-                /*
-                 * Dato i filnavnet:
-                 * 26-10-2026
-                 */
-                function getFileDate() {
-                    return getDateText()
-                        .replaceAll(".", "-");
-                }
-
-                /*
-                 * Fjerner tegn som ikke passer i filnavn.
-                 */
-                function createSafeFileName(
-                    value,
-                    fallback
-                ) {
-                    const cleanedName =
-                        value
-                            .trim()
-                            .toUpperCase()
-                            .replace(
-                                /[^A-ZÆØÅ0-9_-]/gi,
-                                "_"
-                            )
-                            .replace(
-                                /_+/g,
-                                "_"
+                function loadValues() {
+                    try {
+                        const project =
+                            localStorage.getItem(
+                                "naverfotoProject"
                             );
 
-                    return cleanedName || fallback;
+                        const point =
+                            localStorage.getItem(
+                                "naverfotoPoint"
+                            );
+
+                        const fromDepth =
+                            localStorage.getItem(
+                                "naverfotoFromDepth"
+                            );
+
+                        const toDepth =
+                            localStorage.getItem(
+                                "naverfotoToDepth"
+                            );
+
+                        if (project) {
+                            projectInput.value = project;
+                        }
+
+                        if (point) {
+                            pointInput.value = point;
+                        }
+
+                        if (fromDepth !== null) {
+                            fromDepthInput.value =
+                                fromDepth;
+                        }
+
+                        if (toDepth !== null) {
+                            toDepthInput.value =
+                                toDepth;
+                        }
+                    } catch (error) {
+                        console.warn(
+                            "Kunne ikke hente lagrede verdier.",
+                            error
+                        );
+                    }
                 }
 
-                /*
-                 * Tegner hvit tekst med svart omriss.
-                 * Det brukes ingen bakgrunnsboks.
-                 */
                 function drawOutlinedText(
                     context,
                     text,
@@ -619,39 +674,23 @@
                     y,
                     outlineWidth
                 ) {
-                    context.lineWidth =
-                        outlineWidth;
-
-                    context.lineJoin =
-                        "round";
-
+                    context.lineWidth = outlineWidth;
+                    context.lineJoin = "round";
                     context.miterLimit = 2;
-
                     context.strokeStyle =
                         "rgba(0, 0, 0, 0.95)";
+                    context.fillStyle = "#ffffff";
 
-                    context.fillStyle =
-                        "#ffffff";
-
-                    context.strokeText(
-                        text,
-                        x,
-                        y
-                    );
-
-                    context.fillText(
-                        text,
-                        x,
-                        y
-                    );
+                    context.strokeText(text, x, y);
+                    context.fillText(text, x, y);
                 }
 
                 async function openCamera(
-                    videoConstraints
+                    constraints
                 ) {
                     return navigator.mediaDevices
                         .getUserMedia({
-                            video: videoConstraints,
+                            video: constraints,
                             audio: false
                         });
                 }
@@ -670,9 +709,6 @@
                     cameraStream = null;
                 }
 
-                /*
-                 * Starter telefonens bakkamera.
-                 */
                 async function startBackCamera() {
                     if (
                         !navigator.mediaDevices ||
@@ -681,135 +717,92 @@
                         cameraStatus.textContent =
                             "Nettleseren støtter ikke kamera.";
 
-                        status.textContent =
-                            "Åpne siden i Chrome via HTTPS.";
+                        setStatus(
+                            "Åpne siden i Chrome via HTTPS.",
+                            true
+                        );
 
-                        captureButton.disabled = true;
                         return;
                     }
 
                     stopCamera();
 
                     try {
-                        /*
-                         * Første forsøk krever bakkamera.
-                         */
                         cameraStream =
                             await openCamera({
                                 facingMode: {
                                     exact: "environment"
                                 },
-
                                 width: {
                                     ideal: 1920
                                 },
-
                                 height: {
                                     ideal: 1080
                                 }
                             });
-
-                    } catch (exactError) {
-                        console.warn(
-                            "Strengt valg av bakkamera feilet.",
-                            exactError
-                        );
-
+                    } catch (firstError) {
                         try {
-                            /*
-                             * Reserveløsning for telefoner
-                             * som ikke støtter exact.
-                             */
                             cameraStream =
                                 await openCamera({
                                     facingMode: {
                                         ideal: "environment"
                                     },
-
                                     width: {
                                         ideal: 1920
                                     },
-
                                     height: {
                                         ideal: 1080
                                     }
                                 });
-
-                        } catch (fallbackError) {
+                        } catch (cameraError) {
                             console.error(
-                                "Kameraet kunne ikke åpnes.",
-                                fallbackError
+                                cameraError
                             );
 
                             cameraStatus.textContent =
                                 "Kameraet kunne ikke åpnes.";
 
-                            status.textContent =
-                                "Kontroller kameratillatelsen.";
+                            setStatus(
+                                "Kontroller kameratillatelsen.",
+                                true
+                            );
 
-                            captureButton.disabled = true;
                             return;
                         }
                     }
 
-                    video.srcObject =
-                        cameraStream;
+                    video.srcObject = cameraStream;
+                    await video.play();
 
-                    try {
-                        await video.play();
+                    cameraStatus.textContent =
+                        "Bakkamera klart";
 
-                        cameraStatus.textContent =
-                            "Bakkamera klart";
+                    captureButton.disabled = false;
 
-                        status.textContent =
-                            "Klar til å ta bilde.";
+                    setStatus(
+                        "Klar til å ta bilde."
+                    );
 
-                        captureButton.disabled =
-                            false;
-
-                        setTimeout(
-                            function () {
-                                if (cameraStream) {
-                                    cameraStatus.style.display =
-                                        "none";
-                                }
-                            },
-                            1800
-                        );
-
-                    } catch (playError) {
-                        console.error(
-                            "Kamerabildet kunne ikke startes.",
-                            playError
-                        );
-
-                        cameraStatus.textContent =
-                            "Kamerabildet kunne ikke startes.";
-
-                        captureButton.disabled =
-                            true;
-                    }
+                    setTimeout(
+                        function () {
+                            cameraStatus.style.display =
+                                "none";
+                        },
+                        1800
+                    );
                 }
 
-                /*
-                 * Tar bilde, legger på teksten og
-                 * lagrer bildet på telefonen.
-                 */
                 function takePhoto() {
                     if (isSaving) {
                         return;
                     }
 
-                    const width =
-                        video.videoWidth;
-
-                    const height =
-                        video.videoHeight;
+                    const width = video.videoWidth;
+                    const height = video.videoHeight;
 
                     if (!width || !height) {
                         alert(
-                            "Kameraet er ikke klart ennå. " +
-                            "Vent litt og prøv igjen."
+                            "Kameraet er ikke klart ennå."
                         );
 
                         return;
@@ -827,7 +820,7 @@
 
                     if (!projectNumber) {
                         alert(
-                            "Skriv inn prosjektnummer før du tar bildet."
+                            "Skriv inn prosjektnummer."
                         );
 
                         projectInput.focus();
@@ -836,56 +829,40 @@
 
                     if (!borepunkt) {
                         alert(
-                            "Skriv inn borepunkt før du tar bildet."
+                            "Skriv inn borepunkt."
                         );
 
                         pointInput.focus();
                         return;
                     }
 
-                    /*
-                     * Låser verdiene som hører til bildet.
-                     */
-                    const fromDepth =
-                        currentDepth;
+                    const depths = getDepths();
 
-                    const toDepth =
-                        currentDepth + 1;
+                    if (!depths.valid) {
+                        alert(depths.message);
+                        toDepthInput.focus();
+                        return;
+                    }
 
-                    const projectText =
-                        "Prosjekt: " +
-                        projectNumber;
+                    const fromDepth = depths.from;
+                    const toDepth = depths.to;
 
-                    const pointText =
-                        "Borepunkt: " +
-                        borepunkt;
-
-                    const intervalText =
+                    const lines = [
+                        "Prosjekt: " + projectNumber,
+                        "Borepunkt: " + borepunkt,
                         "Dybde: " +
-                        fromDepth +
-                        "–" +
-                        toDepth +
-                        " m";
+                            getDepthText(
+                                fromDepth,
+                                toDepth
+                            ),
+                        getDateText()
+                    ];
 
-                    const dateText =
-                        getDateText();
-
-                    canvas.width =
-                        width;
-
-                    canvas.height =
-                        height;
+                    canvas.width = width;
+                    canvas.height = height;
 
                     const context =
                         canvas.getContext("2d");
-
-                    if (!context) {
-                        alert(
-                            "Telefonen klarte ikke å behandle bildet."
-                        );
-
-                        return;
-                    }
 
                     context.drawImage(
                         video,
@@ -895,139 +872,86 @@
                         height
                     );
 
-                    /*
-                     * Tekststørrelsen tilpasses
-                     * oppløsningen på bildet.
-                     */
-                    const fontSize =
-                        Math.max(
-                            34,
-                            Math.round(width * 0.038)
-                        );
+                    const fontSize = Math.max(
+                        34,
+                        Math.round(width * 0.038)
+                    );
 
-                    const leftMargin =
-                        Math.max(
-                            22,
-                            Math.round(width * 0.025)
-                        );
+                    const leftMargin = Math.max(
+                        22,
+                        Math.round(width * 0.025)
+                    );
 
-                    const topMargin =
-                        Math.max(
-                            28,
-                            Math.round(height * 0.04)
-                        );
+                    const topMargin = Math.max(
+                        28,
+                        Math.round(height * 0.04)
+                    );
 
                     const lineSpacing =
                         Math.round(fontSize * 1.32);
 
-                    const outlineWidth =
-                        Math.max(
-                            4,
-                            Math.round(fontSize * 0.13)
-                        );
+                    const outlineWidth = Math.max(
+                        4,
+                        Math.round(fontSize * 0.13)
+                    );
 
                     context.font =
                         "bold " +
                         fontSize +
                         "px Arial, sans-serif";
 
-                    context.textAlign =
-                        "left";
+                    context.textAlign = "left";
+                    context.textBaseline = "top";
 
-                    context.textBaseline =
-                        "top";
-
-                    /*
-                     * Teksten står øverst på venstre side.
-                     * Ingen grå eller svart bakgrunnsboks.
-                     */
-                    drawOutlinedText(
-                        context,
-                        projectText,
-                        leftMargin,
-                        topMargin,
-                        outlineWidth
-                    );
-
-                    drawOutlinedText(
-                        context,
-                        pointText,
-                        leftMargin,
-                        topMargin + lineSpacing,
-                        outlineWidth
-                    );
-
-                    drawOutlinedText(
-                        context,
-                        intervalText,
-                        leftMargin,
-                        topMargin + lineSpacing * 2,
-                        outlineWidth
-                    );
-
-                    drawOutlinedText(
-                        context,
-                        dateText,
-                        leftMargin,
-                        topMargin + lineSpacing * 3,
-                        outlineWidth
+                    lines.forEach(
+                        function (line, index) {
+                            drawOutlinedText(
+                                context,
+                                line,
+                                leftMargin,
+                                topMargin +
+                                    lineSpacing * index,
+                                outlineWidth
+                            );
+                        }
                     );
 
                     isSaving = true;
-
-                    captureButton.disabled =
-                        true;
-
+                    captureButton.disabled = true;
                     captureButton.textContent =
                         "LAGRER …";
 
-                    status.textContent =
-                        "Behandler bildet …";
-
-                    /*
-                     * Gjør canvas-bildet om til en JPEG-fil.
-                     */
                     canvas.toBlob(
                         function (blob) {
                             if (!blob) {
-                                alert(
-                                    "Bildet kunne ikke lagres."
-                                );
-
                                 isSaving = false;
-
                                 captureButton.disabled =
                                     false;
-
                                 captureButton.textContent =
                                     "TA BILDE";
 
-                                status.textContent =
-                                    "Lagringen mislyktes.";
+                                setStatus(
+                                    "Bildet kunne ikke lagres.",
+                                    true
+                                );
 
                                 return;
                             }
 
-                            const safeProject =
-                                createSafeFileName(
+                            const fileName =
+                                safeFilePart(
                                     projectNumber,
                                     "PROSJEKT"
-                                );
-
-                            const safePoint =
-                                createSafeFileName(
+                                ) +
+                                "_" +
+                                safeFilePart(
                                     borepunkt,
                                     "BOREPUNKT"
-                                );
-
-                            const fileName =
-                                safeProject +
+                                ) +
                                 "_" +
-                                safePoint +
-                                "_" +
-                                fromDepth +
+                                fileDepth(fromDepth) +
                                 "-" +
-                                toDepth +
+                                fileDepth(toDepth) +
                                 "m_" +
                                 getFileDate() +
                                 ".jpg";
@@ -1035,21 +959,15 @@
                             const imageUrl =
                                 URL.createObjectURL(blob);
 
-                            const downloadLink =
+                            const link =
                                 document.createElement("a");
 
-                            downloadLink.href =
-                                imageUrl;
+                            link.href = imageUrl;
+                            link.download = fileName;
 
-                            downloadLink.download =
-                                fileName;
-
-                            document.body.appendChild(
-                                downloadLink
-                            );
-
-                            downloadLink.click();
-                            downloadLink.remove();
+                            document.body.appendChild(link);
+                            link.click();
+                            link.remove();
 
                             setTimeout(
                                 function () {
@@ -1061,23 +979,26 @@
                             );
 
                             /*
-                             * Går automatisk til neste dybde
-                             * når bildet er ferdig lagret.
+                             * Neste prøve starter på
+                             * sluttdybden til forrige prøve.
+                             *
+                             * Eksempel:
+                             * Siste prøve 4–4,35 m
+                             * Neste forslag 4,35–5,35 m
                              */
-                            currentDepth += 1;
-                            updateDepth();
+                            setDepths(
+                                toDepth,
+                                toDepth + NORMAL_STEP
+                            );
 
                             isSaving = false;
-
-                            captureButton.disabled =
-                                false;
-
+                            captureButton.disabled = false;
                             captureButton.textContent =
                                 "TA BILDE";
 
-                            status.textContent =
-                                "Lagret: " +
-                                fileName;
+                            setStatus(
+                                "Lagret: " + fileName
+                            );
                         },
                         "image/jpeg",
                         0.95
@@ -1089,60 +1010,80 @@
                     takePhoto
                 );
 
-                /*
-                 * Flytter ett intervall tilbake.
-                 */
                 backButton.addEventListener(
                     "click",
                     function () {
-                        if (currentDepth > 0) {
-                            currentDepth -= 1;
-                            updateDepth();
+                        const depths = getDepths();
 
-                            status.textContent =
-                                "Valgt dybde: " +
-                                getDepthText();
-                        } else {
-                            status.textContent =
-                                "Dybden står allerede på 0–1 m.";
+                        if (!depths.valid) {
+                            setDepths(0, 1);
+                            return;
                         }
+
+                        const newFrom = Math.max(
+                            0,
+                            depths.from - NORMAL_STEP
+                        );
+
+                        setDepths(
+                            newFrom,
+                            newFrom + NORMAL_STEP
+                        );
+
+                        setStatus(
+                            "Valgt dybde: " +
+                            getDepthText(
+                                newFrom,
+                                newFrom + NORMAL_STEP
+                            )
+                        );
                     }
                 );
 
-                /*
-                 * Hopper over en prøve uten
-                 * å ta eller lagre et bilde.
-                 */
                 nextButton.addEventListener(
                     "click",
                     function () {
-                        currentDepth += 1;
-                        updateDepth();
+                        const depths = getDepths();
 
-                        status.textContent =
+                        if (!depths.valid) {
+                            alert(depths.message);
+                            return;
+                        }
+
+                        /*
+                         * Hopper videre fra gjeldende
+                         * sluttdybde.
+                         */
+                        const newFrom = depths.to;
+                        const newTo =
+                            newFrom + NORMAL_STEP;
+
+                        setDepths(
+                            newFrom,
+                            newTo
+                        );
+
+                        setStatus(
                             "Valgt dybde: " +
-                            getDepthText();
+                            getDepthText(
+                                newFrom,
+                                newTo
+                            )
+                        );
                     }
                 );
 
-                /*
-                 * Nullstiller dybden.
-                 */
                 resetButton.addEventListener(
                     "click",
                     function () {
-                        currentDepth = 0;
-                        updateDepth();
+                        setDepths(0, 1);
 
-                        status.textContent =
-                            "Dybden er nullstilt til 0–1 m.";
+                        setStatus(
+                            "Dybden er nullstilt til 0–1 m."
+                        );
                     }
                 );
 
-                /*
-                 * Gjør prosjektnummeret automatisk
-                 * til store bokstaver og husker verdien.
-                 */
                 projectInput.addEventListener(
                     "input",
                     function () {
@@ -1150,14 +1091,10 @@
                             projectInput.value
                                 .toUpperCase();
 
-                        saveInputValues();
+                        saveValues();
                     }
                 );
 
-                /*
-                 * Gjør borepunktet automatisk
-                 * til store bokstaver og husker verdien.
-                 */
                 pointInput.addEventListener(
                     "input",
                     function () {
@@ -1165,7 +1102,63 @@
                             pointInput.value
                                 .toUpperCase();
 
-                        saveInputValues();
+                        saveValues();
+                    }
+                );
+
+                fromDepthInput.addEventListener(
+                    "input",
+                    function () {
+                        updateDepthPreview();
+                        saveValues();
+                    }
+                );
+
+                toDepthInput.addEventListener(
+                    "input",
+                    function () {
+                        updateDepthPreview();
+                        saveValues();
+                    }
+                );
+
+                /*
+                 * Formaterer dybden når du går ut
+                 * av feltet.
+                 */
+                fromDepthInput.addEventListener(
+                    "blur",
+                    function () {
+                        const value =
+                            parseDepth(
+                                fromDepthInput.value
+                            );
+
+                        if (value !== null) {
+                            fromDepthInput.value =
+                                formatDepth(value);
+                        }
+
+                        updateDepthPreview();
+                        saveValues();
+                    }
+                );
+
+                toDepthInput.addEventListener(
+                    "blur",
+                    function () {
+                        const value =
+                            parseDepth(
+                                toDepthInput.value
+                            );
+
+                        if (value !== null) {
+                            toDepthInput.value =
+                                formatDepth(value);
+                        }
+
+                        updateDepthPreview();
+                        saveValues();
                     }
                 );
 
@@ -1174,8 +1167,8 @@
                     stopCamera
                 );
 
-                loadSavedValues();
-                updateDepth();
+                loadValues();
+                updateDepthPreview();
                 await startBackCamera();
             }
         );
